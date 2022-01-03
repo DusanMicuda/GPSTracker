@@ -1,7 +1,8 @@
-package com.micudasoftware.gpstracker
+package com.micudasoftware.gpstracker.ui
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import com.micudasoftware.gpstracker.R
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
