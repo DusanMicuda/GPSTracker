@@ -7,12 +7,10 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.navigation.fragment.findNavController
 import com.google.android.gms.maps.GoogleMap
 import com.micudasoftware.gpstracker.R
-import com.micudasoftware.gpstracker.databinding.FragmentStartBinding
 import com.micudasoftware.gpstracker.databinding.FragmentTrackingBinding
-import com.micudasoftware.gpstracker.other.Constants.ACTION_START_OR_RESUME_SERVICE
+import com.micudasoftware.gpstracker.other.Constants.ACTION_START_SERVICE
 import com.micudasoftware.gpstracker.services.TrackingService
 import com.micudasoftware.gpstracker.ui.viewmodels.MainViewModel
 import dagger.hilt.android.AndroidEntryPoint
@@ -37,7 +35,7 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking) {
         }
 
         binding.btnToggleRun.setOnClickListener {
-            sendCommandToService(ACTION_START_OR_RESUME_SERVICE)
+            sendCommandToService(ACTION_START_SERVICE)
         }
 
         return binding.root
