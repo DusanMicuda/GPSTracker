@@ -4,6 +4,10 @@
     android:id="@+id/navigation"
     app:startDestination="@id/startFragment">
 
+    <action android:id="@+id/action_global_tracking_fragment"
+        app:destination="@id/trackingFragment"
+        app:launchSingleTop="true"/>
+
     <fragment
         android:id="@+id/startFragment"
         android:name="com.micudasoftware.gpstracker.ui.fragments.StartFragment"
