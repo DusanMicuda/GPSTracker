@@ -1,5 +1,6 @@
 package com.micudasoftware.gpstracker.ui.fragments
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -11,6 +12,7 @@ import com.google.android.gms.maps.GoogleMap
 import com.micudasoftware.gpstracker.R
 import com.micudasoftware.gpstracker.databinding.FragmentStartBinding
 import com.micudasoftware.gpstracker.databinding.FragmentTrackingBinding
+import com.micudasoftware.gpstracker.services.TrackingService
 import com.micudasoftware.gpstracker.ui.viewmodels.MainViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -35,6 +37,12 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking) {
 
         return binding.root
     }
+
+    private fun sendCommandToService(action: String) =
+        Intent(requireContext(), TrackingService::class.java).also {
+            it.action = action
+            requireContext().startService(it)
+        }
 
     override fun onResume() {
         super.onResume()
