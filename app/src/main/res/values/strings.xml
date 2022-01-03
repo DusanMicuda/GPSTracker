@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">GPSTracker</string>
     <string name="google_maps_key">AIzaSyBp2MHScnjoZ3XZhm-0lDxCdjx-VzbI5Dk</string>
+    <string name="btnToggleRun">Start</string>
 </resources>
