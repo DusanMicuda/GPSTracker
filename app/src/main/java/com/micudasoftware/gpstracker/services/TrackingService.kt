@@ -58,6 +58,7 @@ class TrackingService : LifecycleService() {
 
         isTracking.observe(this, {
             updateLocationTracking(it)
+            Log.d("locationservice", "isTracking: ${isTracking.value}")
         })
     }
 
@@ -68,7 +69,8 @@ class TrackingService : LifecycleService() {
                     if (isFirstRun) {
                         startForegroundService()
                         isFirstRun = false
-                    }
+                    } else
+                        startForegroundService()
                 }
                 ACTION_STOP_SERVICE -> {
 
@@ -105,7 +107,7 @@ class TrackingService : LifecycleService() {
                 result.locations.let { locations ->
                     for (location in locations) {
                         addPathPoint(location)
-                        Log.d("locationservice", "Location: ${location.latitude}, ${location.longitude}")
+                        Log.d("locationservice", "Location ${location.latitude}, ${location.longitude}")
                     }
                 }
             }

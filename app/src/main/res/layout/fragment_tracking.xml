@@ -16,10 +16,10 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <com.google.android.material.button.MaterialButton
-        android:id="@+id/btnToggleRun"
+        android:id="@+id/btnToggleTrack"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/btnToggleRun"
+        android:text="@string/btnStart"
         android:layout_marginBottom="56dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"

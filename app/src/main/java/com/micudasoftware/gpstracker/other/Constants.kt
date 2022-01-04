@@ -1,5 +1,7 @@
 package com.micudasoftware.gpstracker.other
 
+import android.graphics.Color
+
 object Constants {
 
     const val TRACK_DATABASE_NAME = "track_db"
@@ -12,6 +14,10 @@ object Constants {
 
     const val LOCATION_UPDATE_INTERVAL = 5000L
     const val FASTEST_LOCATION_UPDATE_INTERVAL = 2000L
+
+    const val POLYLINE_COLOR = Color.BLUE
+    const val POLYLINE_WIDTH = 8F
+    const val MAP_ZOOM = 15F
 
     const val NOTIFICATION_CHANNEL_ID = "tracking_channel"
     const val NOTIFICATION_CHANNEL_NAME = "Tracking"
