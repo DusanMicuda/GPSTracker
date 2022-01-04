@@ -1,26 +1,34 @@
 package com.micudasoftware.gpstracker.ui.fragments
 
 import android.content.Intent
+import android.location.Location
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
+import android.widget.Toast.LENGTH_SHORT
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.ViewModelProvider
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.LatLngBounds
 import com.google.android.gms.maps.model.PolylineOptions
 import com.micudasoftware.gpstracker.R
 import com.micudasoftware.gpstracker.databinding.FragmentTrackingBinding
+import com.micudasoftware.gpstracker.db.Track
 import com.micudasoftware.gpstracker.other.Constants.ACTION_START_SERVICE
 import com.micudasoftware.gpstracker.other.Constants.ACTION_STOP_SERVICE
 import com.micudasoftware.gpstracker.other.Constants.MAP_ZOOM
 import com.micudasoftware.gpstracker.other.Constants.POLYLINE_COLOR
 import com.micudasoftware.gpstracker.other.Constants.POLYLINE_WIDTH
+import com.micudasoftware.gpstracker.other.Utils
 import com.micudasoftware.gpstracker.services.TrackingService
 import com.micudasoftware.gpstracker.ui.viewmodels.MainViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import kotlin.math.round
 
 @AndroidEntryPoint
 class TrackingFragment : Fragment(R.layout.fragment_tracking) {
@@ -30,6 +38,8 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking) {
     private lateinit var map: GoogleMap
     private var isTracking = false
     private var pathPoints = mutableListOf<LatLng>()
+    private var startTime = 0L
+    private var stopTime = 0L
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -64,12 +74,22 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking) {
             addLatestPolyline()
             moveCameraToUser()
         })
+
+        TrackingService.startTime.observe(viewLifecycleOwner, {
+            startTime = it
+        })
+
+        TrackingService.stopTime.observe(viewLifecycleOwner, {
+            stopTime = it
+        })
     }
 
     private fun toggleTrack() {
-        if (isTracking)
+        if (isTracking) {
             sendCommandToService(ACTION_STOP_SERVICE)
-        else
+            zoomToSeeWholeTrack()
+            endTrackAndSaveToDb()
+        } else
             sendCommandToService(ACTION_START_SERVICE)
     }
 
@@ -90,6 +110,39 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking) {
                 )
             )
         }
+    }
+
+    private fun endTrackAndSaveToDb() {
+        map.snapshot { bmp ->
+            val distanceInMeters = Utils.getDistanceInMeters(pathPoints).toInt()
+            val timeInMillis = stopTime - startTime
+            val avgSpeedInKMH = round((distanceInMeters / 1000f) / (timeInMillis / 1000f / 60 / 60) * 10) / 10f
+            val track = Track(
+                bmp,
+                startTime,
+                distanceInMeters,
+                avgSpeedInKMH,
+                timeInMillis
+            )
+            viewModel.insertTrack(track)
+            Toast.makeText(requireContext(), "Track saved successfully", LENGTH_SHORT).show()
+        }
+    }
+
+    private fun zoomToSeeWholeTrack() {
+        val bounds = LatLngBounds.Builder()
+        for (pos in pathPoints)
+            bounds.include(pos)
+
+        map.moveCamera(
+            CameraUpdateFactory.newLatLngBounds(
+                bounds.build(),
+                binding.mapView.width,
+                binding.mapView.height,
+                (binding.mapView.height * 0.05f).toInt()
+            )
+        )
+
     }
 
     private fun addAllPolylines() {

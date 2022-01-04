@@ -22,6 +22,7 @@ import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest.PRIORITY_HIGH_ACCURACY
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.LatLngBounds
 import com.micudasoftware.gpstracker.R
 import com.micudasoftware.gpstracker.other.Constants.ACTION_SHOW_TRACKING_FRAGMENT
 import com.micudasoftware.gpstracker.other.Constants.ACTION_START_SERVICE
@@ -33,22 +34,24 @@ import com.micudasoftware.gpstracker.other.Constants.NOTIFICATION_CHANNEL_NAME
 import com.micudasoftware.gpstracker.other.Constants.NOTIFICATION_ID
 import com.micudasoftware.gpstracker.other.Utils
 import com.micudasoftware.gpstracker.ui.MainActivity
+import java.util.*
 
 
 class TrackingService : LifecycleService() {
-
-    private var isFirstRun = true
 
     private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
 
     companion object {
         val isTracking = MutableLiveData<Boolean>()
         val pathPoints = MutableLiveData<MutableList<LatLng>>()
+        val startTime = MutableLiveData<Long>()
+        val stopTime = MutableLiveData<Long>()
     }
 
     private fun postInitialValues() {
         isTracking.postValue(false)
         pathPoints.postValue(arrayListOf())
+        startTime.postValue(Calendar.getInstance().timeInMillis)
     }
 
     override fun onCreate() {
@@ -62,18 +65,21 @@ class TrackingService : LifecycleService() {
         })
     }
 
+    private fun killService() {
+        isTracking.postValue(false)
+        stopTime.postValue(Calendar.getInstance().timeInMillis)
+        stopForeground(true)
+        stopSelf()
+    }
+
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         intent?.let {
             when (it.action) {
                 ACTION_START_SERVICE -> {
-                    if (isFirstRun) {
-                        startForegroundService()
-                        isFirstRun = false
-                    } else
-                        startForegroundService()
+                    startForegroundService()
                 }
                 ACTION_STOP_SERVICE -> {
-
+                    killService()
                 }
             }
         }
