@@ -52,13 +52,14 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking) {
         binding.mapView.getMapAsync {
             map = it
             addAllPolylines()
+            subscribeToObservers()
         }
 
         binding.btnToggleTrack.setOnClickListener {
             toggleTrack()
         }
 
-        subscribeToObservers()
+
 
         return binding.root
     }
@@ -137,8 +138,8 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking) {
         map.moveCamera(
             CameraUpdateFactory.newLatLngBounds(
                 bounds.build(),
-                binding.mapView.width,
-                binding.mapView.height,
+                600,
+                300,
                 (binding.mapView.height * 0.05f).toInt()
             )
         )

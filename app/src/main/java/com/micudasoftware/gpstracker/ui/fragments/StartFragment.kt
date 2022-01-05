@@ -9,10 +9,13 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.micudasoftware.gpstracker.R
 import com.micudasoftware.gpstracker.databinding.FragmentStartBinding
 import com.micudasoftware.gpstracker.other.Constants.REQUEST_CODE_LOCATION_PERMISSION
 import com.micudasoftware.gpstracker.other.Utils
+import com.micudasoftware.gpstracker.ui.adapters.TrackAdapter
 import com.micudasoftware.gpstracker.ui.viewmodels.MainViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import pub.devrel.easypermissions.AppSettingsDialog
@@ -23,6 +26,7 @@ class StartFragment : Fragment(R.layout.fragment_start), EasyPermissions.Permiss
 
     private val viewModel: MainViewModel by viewModels()
     private lateinit var binding: FragmentStartBinding
+    private lateinit var trackAdapter: TrackAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -32,12 +36,23 @@ class StartFragment : Fragment(R.layout.fragment_start), EasyPermissions.Permiss
         binding = FragmentStartBinding.inflate(layoutInflater, container, false)
 
         requestPermissions()
+        setupRecyclerView()
+
+        viewModel.runsSortedByDate.observe(viewLifecycleOwner, {
+            trackAdapter.submitList(it)
+        })
 
         binding.fab.setOnClickListener {
             findNavController().navigate(R.id.action_startFragment_to_trackingFragment)
         }
 
         return binding.root
+    }
+
+    private fun setupRecyclerView() = binding.rvTracks.apply {
+        trackAdapter = TrackAdapter()
+        adapter = trackAdapter
+        layoutManager = LinearLayoutManager(requireContext())
     }
 
     private fun requestPermissions() {
