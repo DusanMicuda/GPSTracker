@@ -22,6 +22,8 @@
         android:label="TrackingFragment" >
         <action
             android:id="@+id/action_trackingFragment_to_startFragment"
-            app:destination="@id/startFragment" />
+            app:destination="@id/startFragment"
+            app:popUpTo="@id/startFragment"
+            app:popUpToInclusive="true" />
     </fragment>
 </navigation>

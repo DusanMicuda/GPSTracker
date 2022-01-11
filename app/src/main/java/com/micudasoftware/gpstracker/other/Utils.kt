@@ -10,21 +10,22 @@ import java.util.concurrent.TimeUnit
 
 object Utils {
 
-    fun hasLocationPermissions(context: Context) =
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-            EasyPermissions.hasPermissions(
+    fun hasLocationPermissions(context: Context) : Boolean {
+        var result = EasyPermissions.hasPermissions(
+            context,
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.ACCESS_COARSE_LOCATION
+        )
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && result) {
+            result = EasyPermissions.hasPermissions(
                 context,
-                Manifest.permission.ACCESS_FINE_LOCATION,
-                Manifest.permission.ACCESS_COARSE_LOCATION
-            )
-        } else {
-            EasyPermissions.hasPermissions(
-                context,
-                Manifest.permission.ACCESS_FINE_LOCATION,
-                Manifest.permission.ACCESS_COARSE_LOCATION,
                 Manifest.permission.ACCESS_BACKGROUND_LOCATION
             )
         }
+
+        return result
+    }
 
     fun getDistanceInMeters(pathPoints: MutableList<LatLng>) : Float{
         var distanceInMeters = 0f

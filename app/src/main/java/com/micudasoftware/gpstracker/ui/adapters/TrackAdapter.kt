@@ -50,8 +50,8 @@ class TrackAdapter : RecyclerView.Adapter<TrackAdapter.TrackViewHolder>() {
         holder.itemView.apply {
             Glide.with(this)
                 .load(track.image)
-//                .apply(RequestOptions().override(600,300))
-//                .centerCrop()
+                .apply(RequestOptions().override(800,400))
+                .centerCrop()
                 .into(binding.ivTrackImage)
 
             val calendar = Calendar.getInstance().apply {

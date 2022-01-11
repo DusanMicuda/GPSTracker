@@ -1,7 +1,6 @@
 package com.micudasoftware.gpstracker.ui.fragments
 
 import android.content.Intent
-import android.location.Location
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -10,7 +9,7 @@ import android.widget.Toast
 import android.widget.Toast.LENGTH_SHORT
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.findNavController
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.LatLng
@@ -51,15 +50,14 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking) {
         binding.mapView.onCreate(savedInstanceState)
         binding.mapView.getMapAsync {
             map = it
-            addAllPolylines()
+
             subscribeToObservers()
+            addAllPolylines()
         }
 
         binding.btnToggleTrack.setOnClickListener {
             toggleTrack()
         }
-
-
 
         return binding.root
     }
@@ -114,19 +112,25 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking) {
     }
 
     private fun endTrackAndSaveToDb() {
-        map.snapshot { bmp ->
-            val distanceInMeters = Utils.getDistanceInMeters(pathPoints).toInt()
-            val timeInMillis = stopTime - startTime
-            val avgSpeedInKMH = round((distanceInMeters / 1000f) / (timeInMillis / 1000f / 60 / 60) * 10) / 10f
-            val track = Track(
-                bmp,
-                startTime,
-                distanceInMeters,
-                avgSpeedInKMH,
-                timeInMillis
-            )
-            viewModel.insertTrack(track)
-            Toast.makeText(requireContext(), "Track saved successfully", LENGTH_SHORT).show()
+        map.setOnMapLoadedCallback {
+            map.snapshot { bmp ->
+                val distanceInMeters = Utils.getDistanceInMeters(pathPoints).toInt()
+                val timeInMillis = stopTime - startTime
+                val avgSpeedInKMH =
+                    round((distanceInMeters / 1000f) / (timeInMillis / 1000f / 60 / 60) * 10) / 10f
+                val track = Track(
+                    bmp,
+                    startTime,
+                    distanceInMeters,
+                    avgSpeedInKMH,
+                    timeInMillis
+                )
+                viewModel.insertTrack(track)
+                TrackingService.pathPoints.postValue(mutableListOf())
+                map.clear()
+                Toast.makeText(requireActivity(), "Track saved successfully", LENGTH_SHORT).show()
+                binding.root.findNavController().navigate(R.id.action_trackingFragment_to_startFragment)
+            }
         }
     }
 
@@ -138,8 +142,8 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking) {
         map.moveCamera(
             CameraUpdateFactory.newLatLngBounds(
                 bounds.build(),
-                600,
-                300,
+                binding.mapView.width,
+                binding.mapView.height / 3,
                 (binding.mapView.height * 0.05f).toInt()
             )
         )
@@ -147,15 +151,17 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking) {
     }
 
     private fun addAllPolylines() {
-        val polylineOptions = PolylineOptions()
-            .color(POLYLINE_COLOR)
-            .width(POLYLINE_WIDTH)
-            .addAll(pathPoints)
-        map.addPolyline(polylineOptions)
+        if (isTracking) {
+            val polylineOptions = PolylineOptions()
+                .color(POLYLINE_COLOR)
+                .width(POLYLINE_WIDTH)
+                .addAll(pathPoints)
+            map.addPolyline(polylineOptions)
+        }
     }
 
     private fun addLatestPolyline() {
-        if (pathPoints.isNotEmpty() && pathPoints.size > 1) {
+        if (isTracking && pathPoints.isNotEmpty() && pathPoints.size > 1) {
             val preLastLatLng = pathPoints[pathPoints.size - 2]
             val lastLatLng = pathPoints.last()
             val polylineOptions = PolylineOptions()
