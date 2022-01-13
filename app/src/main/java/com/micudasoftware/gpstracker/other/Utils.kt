@@ -27,7 +27,7 @@ object Utils {
         return result
     }
 
-    fun getDistanceInMeters(pathPoints: MutableList<LatLng>) : Float{
+    fun getDistanceInMeters(pathPoints: List<LatLng>) : Float{
         var distanceInMeters = 0f
         for (i in 0..(pathPoints.size - 2)) {
             val pos1 = pathPoints[i]

@@ -15,8 +15,7 @@ import com.micudasoftware.gpstracker.databinding.FragmentStartBinding
 import com.micudasoftware.gpstracker.other.Constants.REQUEST_CODE_BACKGROUND_LOCATION_PERMISSION
 import com.micudasoftware.gpstracker.other.Constants.REQUEST_CODE_LOCATION_PERMISSION
 import com.micudasoftware.gpstracker.other.Utils
-import com.micudasoftware.gpstracker.ui.adapters.TrackAdapter
-import com.micudasoftware.gpstracker.ui.viewmodels.MainViewModel
+import com.micudasoftware.gpstracker.ui.viewmodels.StartViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import pub.devrel.easypermissions.AppSettingsDialog
 import pub.devrel.easypermissions.EasyPermissions
@@ -24,9 +23,8 @@ import pub.devrel.easypermissions.EasyPermissions
 @AndroidEntryPoint
 class StartFragment : Fragment(R.layout.fragment_start), EasyPermissions.PermissionCallbacks {
 
-    private val viewModel: MainViewModel by viewModels()
+    private val viewModel: StartViewModel by viewModels()
     private lateinit var binding: FragmentStartBinding
-    private lateinit var trackAdapter: TrackAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -35,11 +33,10 @@ class StartFragment : Fragment(R.layout.fragment_start), EasyPermissions.Permiss
     ): View {
         binding = FragmentStartBinding.inflate(layoutInflater, container, false)
 
-        setupRecyclerView()
-
-        viewModel.runsSortedByDate.observe(viewLifecycleOwner, {
-            trackAdapter.submitList(it)
-        })
+        binding.rvTracks.apply {
+            adapter = viewModel.trackAdapter
+            layoutManager = LinearLayoutManager(requireContext())
+        }
 
         binding.fab.setOnClickListener {
             if (Utils.hasLocationPermissions(requireContext()))
@@ -51,12 +48,6 @@ class StartFragment : Fragment(R.layout.fragment_start), EasyPermissions.Permiss
         }
 
         return binding.root
-    }
-
-    private fun setupRecyclerView() = binding.rvTracks.apply {
-        trackAdapter = TrackAdapter()
-        adapter = trackAdapter
-        layoutManager = LinearLayoutManager(requireContext())
     }
 
     private fun requestPermissions() {

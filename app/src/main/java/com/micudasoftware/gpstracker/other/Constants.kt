@@ -5,6 +5,7 @@ import android.graphics.Color
 object Constants {
 
     const val TRACK_DATABASE_NAME = "track_db"
+    const val TRACKING_TABLE_NAME = "tracking_table"
 
     const val REQUEST_CODE_LOCATION_PERMISSION = 0
     const val REQUEST_CODE_BACKGROUND_LOCATION_PERMISSION = 1

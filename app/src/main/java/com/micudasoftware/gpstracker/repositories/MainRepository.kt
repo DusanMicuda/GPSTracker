@@ -1,15 +1,13 @@
 package com.micudasoftware.gpstracker.repositories
 
 import com.micudasoftware.gpstracker.db.Track
-import com.micudasoftware.gpstracker.db.TrackDAO
-import javax.inject.Inject
+import kotlinx.coroutines.flow.Flow
 
-class MainRepository @Inject constructor(
-    val trackDao: TrackDAO
-) {
-    suspend fun insertTrack(track: Track) = trackDao.insertTrack(track)
+interface MainRepository {
 
-    suspend fun deleteTrack(track: Track) = trackDao.deleteTrack(track)
+    suspend fun insertTrack(track: Track)
 
-    fun getAllTracksSortedByDate() = trackDao.getAllTracksSortedByDate()
+    suspend fun deleteTrack(track: Track)
+
+    fun getAllTracksSortedByDate(): Flow<List<Track>>
 }

@@ -9,36 +9,21 @@ import android.widget.Toast
 import android.widget.Toast.LENGTH_SHORT
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.navigation.findNavController
-import com.google.android.gms.maps.CameraUpdateFactory
-import com.google.android.gms.maps.GoogleMap
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.LatLngBounds
-import com.google.android.gms.maps.model.PolylineOptions
+import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
 import com.micudasoftware.gpstracker.R
 import com.micudasoftware.gpstracker.databinding.FragmentTrackingBinding
-import com.micudasoftware.gpstracker.db.Track
-import com.micudasoftware.gpstracker.other.Constants.ACTION_START_SERVICE
-import com.micudasoftware.gpstracker.other.Constants.ACTION_STOP_SERVICE
-import com.micudasoftware.gpstracker.other.Constants.MAP_ZOOM
-import com.micudasoftware.gpstracker.other.Constants.POLYLINE_COLOR
-import com.micudasoftware.gpstracker.other.Constants.POLYLINE_WIDTH
-import com.micudasoftware.gpstracker.other.Utils
+import com.micudasoftware.gpstracker.other.Event
 import com.micudasoftware.gpstracker.services.TrackingService
-import com.micudasoftware.gpstracker.ui.viewmodels.MainViewModel
+import com.micudasoftware.gpstracker.ui.viewmodels.TrackingViewModel
 import dagger.hilt.android.AndroidEntryPoint
-import kotlin.math.round
+import kotlinx.coroutines.flow.collect
 
 @AndroidEntryPoint
 class TrackingFragment : Fragment(R.layout.fragment_tracking) {
 
-    private val viewModel: MainViewModel by viewModels()
+    private val viewModel: TrackingViewModel by viewModels()
     private lateinit var binding: FragmentTrackingBinding
-    private lateinit var map: GoogleMap
-    private var isTracking = false
-    private var pathPoints = mutableListOf<LatLng>()
-    private var startTime = 0L
-    private var stopTime = 0L
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -49,135 +34,42 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking) {
 
         binding.mapView.onCreate(savedInstanceState)
         binding.mapView.getMapAsync {
-            map = it
-
-            subscribeToObservers()
-            addAllPolylines()
+            viewModel.map = it
+            viewModel.addAllPolylines()
         }
 
         binding.btnToggleTrack.setOnClickListener {
-            toggleTrack()
+            viewModel.setMapViewSize(binding.mapView.width, binding.mapView.height)
+            viewModel.toggleTrack()
+        }
+
+        lifecycleScope.launchWhenStarted {
+            viewModel.btnText.collect {
+                binding.btnToggleTrack.text = it
+            }
+        }
+
+        lifecycleScope.launchWhenStarted {
+            viewModel.eventChannel.collect { event ->
+                when (event) {
+                    is Event.Navigate -> {
+                        findNavController().navigate(event.route)
+                    }
+                    is Event.SendCommandToService -> {
+                        Intent(requireContext(), TrackingService::class.java).also {
+                            it.action = event.command
+                            requireContext().startService(it)
+                        }
+                    }
+                    is Event.ShowToast -> {
+                        Toast.makeText(requireActivity(), event.message, LENGTH_SHORT).show()
+                    }
+                }
+            }
         }
 
         return binding.root
     }
-
-    private fun subscribeToObservers() {
-        TrackingService.isTracking.observe(viewLifecycleOwner, {
-            isTracking = it
-            updateTracking(it)
-        })
-
-        TrackingService.pathPoints.observe(viewLifecycleOwner, {
-            pathPoints = it
-            addLatestPolyline()
-            moveCameraToUser()
-        })
-
-        TrackingService.startTime.observe(viewLifecycleOwner, {
-            startTime = it
-        })
-
-        TrackingService.stopTime.observe(viewLifecycleOwner, {
-            stopTime = it
-        })
-    }
-
-    private fun toggleTrack() {
-        if (isTracking) {
-            sendCommandToService(ACTION_STOP_SERVICE)
-            zoomToSeeWholeTrack()
-            endTrackAndSaveToDb()
-        } else
-            sendCommandToService(ACTION_START_SERVICE)
-    }
-
-    private fun updateTracking(isTracking: Boolean) {
-        if (!isTracking)
-            binding.btnToggleTrack.text = getString(R.string.btnStart)
-        else
-            binding.btnToggleTrack.text = getString(R.string.btnStop)
-
-    }
-
-    private fun moveCameraToUser() {
-        if (pathPoints.isNotEmpty()) {
-            map.animateCamera(
-                CameraUpdateFactory.newLatLngZoom(
-                    pathPoints.last(),
-                    MAP_ZOOM
-                )
-            )
-        }
-    }
-
-    private fun endTrackAndSaveToDb() {
-        map.setOnMapLoadedCallback {
-            map.snapshot { bmp ->
-                val distanceInMeters = Utils.getDistanceInMeters(pathPoints).toInt()
-                val timeInMillis = stopTime - startTime
-                val avgSpeedInKMH =
-                    round((distanceInMeters / 1000f) / (timeInMillis / 1000f / 60 / 60) * 10) / 10f
-                val track = Track(
-                    bmp,
-                    startTime,
-                    distanceInMeters,
-                    avgSpeedInKMH,
-                    timeInMillis
-                )
-                viewModel.insertTrack(track)
-                TrackingService.pathPoints.postValue(mutableListOf())
-                map.clear()
-                Toast.makeText(requireActivity(), "Track saved successfully", LENGTH_SHORT).show()
-                binding.root.findNavController().navigate(R.id.action_trackingFragment_to_startFragment)
-            }
-        }
-    }
-
-    private fun zoomToSeeWholeTrack() {
-        val bounds = LatLngBounds.Builder()
-        for (pos in pathPoints)
-            bounds.include(pos)
-
-        map.moveCamera(
-            CameraUpdateFactory.newLatLngBounds(
-                bounds.build(),
-                binding.mapView.width,
-                binding.mapView.height / 3,
-                (binding.mapView.height * 0.05f).toInt()
-            )
-        )
-
-    }
-
-    private fun addAllPolylines() {
-        if (isTracking) {
-            val polylineOptions = PolylineOptions()
-                .color(POLYLINE_COLOR)
-                .width(POLYLINE_WIDTH)
-                .addAll(pathPoints)
-            map.addPolyline(polylineOptions)
-        }
-    }
-
-    private fun addLatestPolyline() {
-        if (isTracking && pathPoints.isNotEmpty() && pathPoints.size > 1) {
-            val preLastLatLng = pathPoints[pathPoints.size - 2]
-            val lastLatLng = pathPoints.last()
-            val polylineOptions = PolylineOptions()
-                .color(POLYLINE_COLOR)
-                .width(POLYLINE_WIDTH)
-                .add(preLastLatLng)
-                .add(lastLatLng)
-            map.addPolyline(polylineOptions)
-        }
-    }
-
-    private fun sendCommandToService(action: String) =
-        Intent(requireContext(), TrackingService::class.java).also {
-            it.action = action
-            requireContext().startService(it)
-        }
 
     override fun onResume() {
         super.onResume()

@@ -1,8 +1,8 @@
 package com.micudasoftware.gpstracker.db
 
-import androidx.lifecycle.LiveData
 import androidx.room.*
-import com.google.android.gms.location.Geofence
+import com.micudasoftware.gpstracker.other.Constants.TRACKING_TABLE_NAME
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface TrackDAO {
@@ -13,7 +13,7 @@ interface TrackDAO {
     @Delete
     suspend fun deleteTrack(track: Track)
 
-    @Query("SELECT * FROM tracking_table ORDER BY dateInMillis DESC")
-    fun getAllTracksSortedByDate(): LiveData<List<Track>>
+    @Query("SELECT * FROM $TRACKING_TABLE_NAME ORDER BY dateInMillis DESC")
+    fun getAllTracksSortedByDate(): Flow<List<Track>>
 
 }
