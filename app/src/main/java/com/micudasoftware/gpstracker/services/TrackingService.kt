@@ -20,6 +20,7 @@ import com.google.android.gms.location.*
 import com.google.android.gms.location.LocationRequest.PRIORITY_HIGH_ACCURACY
 import com.google.android.gms.maps.model.LatLng
 import com.micudasoftware.gpstracker.R
+import com.micudasoftware.gpstracker.other.Constants.ACTION_RESET_SERVICE
 import com.micudasoftware.gpstracker.other.Constants.ACTION_SHOW_TRACKING_FRAGMENT
 import com.micudasoftware.gpstracker.other.Constants.ACTION_START_SERVICE
 import com.micudasoftware.gpstracker.other.Constants.ACTION_STOP_SERVICE
@@ -31,6 +32,7 @@ import com.micudasoftware.gpstracker.other.Constants.NOTIFICATION_ID
 import com.micudasoftware.gpstracker.other.Utils
 import com.micudasoftware.gpstracker.ui.MainActivity
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import java.util.*
@@ -41,10 +43,14 @@ class TrackingService : LifecycleService() {
     private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
 
     companion object {
-        val isTracking = MutableStateFlow(false)
-        val pathPoints = MutableStateFlow<MutableList<LatLng>>(arrayListOf())
-        val startTime = MutableStateFlow(0L)
-        val stopTime = MutableStateFlow(0L)
+        private val _isTracking = MutableStateFlow(false)
+        val isTracking = _isTracking.asStateFlow()
+        private val _pathPoints = MutableStateFlow<MutableList<LatLng>>(arrayListOf())
+        val pathPoints = _pathPoints.asStateFlow()
+        private val _startTime = MutableStateFlow(0L)
+        val startTime = _startTime.asStateFlow()
+        private val _stopTime = MutableStateFlow(0L)
+        val stopTime = _stopTime.asStateFlow()
     }
 
     override fun onCreate() {
@@ -59,8 +65,8 @@ class TrackingService : LifecycleService() {
     }
 
     private fun killService() {
-        isTracking.value = false
-        stopTime.value = Calendar.getInstance().timeInMillis
+        _isTracking.value = false
+        _stopTime.value = Calendar.getInstance().timeInMillis
         stopForeground(true)
         stopSelf()
     }
@@ -72,7 +78,10 @@ class TrackingService : LifecycleService() {
                     startForegroundService()
                 }
                 ACTION_STOP_SERVICE -> {
-                        killService()
+                    killService()
+                }
+                ACTION_RESET_SERVICE -> {
+                    _pathPoints.value = mutableListOf()
                 }
             }
         }
@@ -111,17 +120,13 @@ class TrackingService : LifecycleService() {
     private fun addPathPoint(location: Location?) {
         location?.let {
             val pos = LatLng(location.latitude, location.longitude)
-            pathPoints.value.apply {
-                val list = this.toMutableList()
-                list.add(pos)
-                pathPoints.value = list
-            }
+            _pathPoints.value = pathPoints.value.plus(pos).toMutableList()
         }
     }
 
     private fun startForegroundService() {
-        isTracking.value = true
-        startTime.value = Calendar.getInstance().timeInMillis
+        _isTracking.value = true
+        _startTime.value = Calendar.getInstance().timeInMillis
 
         val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE)
                 as NotificationManager

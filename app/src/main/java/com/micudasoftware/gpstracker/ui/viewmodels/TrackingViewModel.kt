@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
-import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.LatLngBounds
 import com.google.android.gms.maps.model.PolylineOptions
 import com.micudasoftware.gpstracker.R
@@ -14,9 +13,12 @@ import com.micudasoftware.gpstracker.other.Event
 import com.micudasoftware.gpstracker.other.Utils
 import com.micudasoftware.gpstracker.repositories.MainRepositoryImpl
 import com.micudasoftware.gpstracker.services.TrackingService
+import com.micudasoftware.gpstracker.services.TrackingService.Companion.isTracking
+import com.micudasoftware.gpstracker.services.TrackingService.Companion.pathPoints
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
@@ -30,12 +32,14 @@ class TrackingViewModel @Inject constructor(
 
     private val _eventChannel = Channel<Event>()
     val eventChannel = _eventChannel.receiveAsFlow()
+
     private var mapViewWidth = 0
     private var mapViewHeight = 0
-    var btnText = MutableStateFlow("Start")
+
+    private val _btnText = MutableStateFlow("Start")
+    val btnText = _btnText.asStateFlow()
+
     var map: GoogleMap? = null
-    private var isTracking = false
-    private var pathPoints = listOf<LatLng>()
     private var startTime = 0L
     private var stopTime = 0L
 
@@ -49,15 +53,13 @@ class TrackingViewModel @Inject constructor(
 
     private fun subscribeToCollectors() {
         viewModelScope.launch {
-            TrackingService.isTracking.collect {
-                isTracking = it
+            isTracking.collect {
                 updateTracking(it)
             }
         }
 
         viewModelScope.launch {
-            TrackingService.pathPoints.collect {
-                pathPoints = it
+            pathPoints.collect {
                 addLatestPolyline()
                 moveCameraToUser()
             }
@@ -77,7 +79,7 @@ class TrackingViewModel @Inject constructor(
     }
 
     fun toggleTrack() {
-        if (isTracking) {
+        if (isTracking.value) {
             triggerEvent(Event.SendCommandToService(Constants.ACTION_STOP_SERVICE))
             zoomToSeeWholeTrack()
             endTrackAndSaveToDb()
@@ -86,18 +88,17 @@ class TrackingViewModel @Inject constructor(
     }
 
     private fun updateTracking(isTracking: Boolean) {
-        btnText.value = if (!isTracking)
+        _btnText.value = if (!isTracking)
             "Start"
         else
             "Stop"
-
     }
 
     private fun moveCameraToUser() {
-        if (pathPoints.isNotEmpty()) {
+        if (pathPoints.value.isNotEmpty()) {
             map?.animateCamera(
                 CameraUpdateFactory.newLatLngZoom(
-                    pathPoints.last(),
+                    pathPoints.value.last(),
                     Constants.MAP_ZOOM
                 )
             )
@@ -107,7 +108,7 @@ class TrackingViewModel @Inject constructor(
     private fun endTrackAndSaveToDb() {
         map?.setOnMapLoadedCallback {
             map!!.snapshot { bmp ->
-                val distanceInMeters = Utils.getDistanceInMeters(pathPoints).toInt()
+                val distanceInMeters = Utils.getDistanceInMeters(pathPoints.value).toInt()
                 val timeInMillis = stopTime - startTime
                 val avgSpeedInKMH =
                     round((distanceInMeters / 1000f) / (timeInMillis / 1000f / 60 / 60) * 10) / 10f
@@ -121,6 +122,7 @@ class TrackingViewModel @Inject constructor(
                 insertTrack(track)
                 map!!.clear()
                 triggerEvent(Event.ShowToast("Track saved successfully"))
+                triggerEvent(Event.SendCommandToService(Constants.ACTION_RESET_SERVICE))
                 triggerEvent(Event.Navigate(R.id.action_trackingFragment_to_startFragment))
             }
         }
@@ -128,7 +130,7 @@ class TrackingViewModel @Inject constructor(
 
     private fun zoomToSeeWholeTrack() {
         val bounds = LatLngBounds.Builder()
-        for (pos in pathPoints)
+        for (pos in pathPoints.value)
             bounds.include(pos)
 
         map?.moveCamera(
@@ -139,23 +141,22 @@ class TrackingViewModel @Inject constructor(
                 (mapViewHeight * 0.05f).toInt()
             )
         )
-
     }
 
     fun addAllPolylines() {
-        if (isTracking) {
+        if (isTracking.value) {
             val polylineOptions = PolylineOptions()
                 .color(Constants.POLYLINE_COLOR)
                 .width(Constants.POLYLINE_WIDTH)
-                .addAll(pathPoints)
+                .addAll(pathPoints.value)
             map?.addPolyline(polylineOptions)
         }
     }
 
     private fun addLatestPolyline() {
-        if (isTracking && pathPoints.isNotEmpty() && pathPoints.size > 1) {
-            val preLastLatLng = pathPoints[pathPoints.size - 2]
-            val lastLatLng = pathPoints.last()
+        if (isTracking.value && pathPoints.value.isNotEmpty() && pathPoints.value.size > 1) {
+            val preLastLatLng = pathPoints.value[pathPoints.value.size - 2]
+            val lastLatLng = pathPoints.value.last()
             val polylineOptions = PolylineOptions()
                 .color(Constants.POLYLINE_COLOR)
                 .width(Constants.POLYLINE_WIDTH)
