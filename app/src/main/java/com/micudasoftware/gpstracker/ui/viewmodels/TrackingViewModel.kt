@@ -12,9 +12,6 @@ import com.micudasoftware.gpstracker.other.Constants
 import com.micudasoftware.gpstracker.other.Event
 import com.micudasoftware.gpstracker.other.Utils
 import com.micudasoftware.gpstracker.repositories.MainRepositoryImpl
-import com.micudasoftware.gpstracker.services.TrackingService
-import com.micudasoftware.gpstracker.services.TrackingService.Companion.isTracking
-import com.micudasoftware.gpstracker.services.TrackingService.Companion.pathPoints
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -40,6 +37,9 @@ class TrackingViewModel @Inject constructor(
     val btnText = _btnText.asStateFlow()
 
     var map: GoogleMap? = null
+
+    private val isTracking = mainRepository.isTracking()
+    private val pathPoints = mainRepository.getPathPoints()
     private var startTime = 0L
     private var stopTime = 0L
 
@@ -66,13 +66,13 @@ class TrackingViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
-            TrackingService.startTime.collect {
+            mainRepository.getStartTime().collect {
                 startTime = it
             }
         }
 
         viewModelScope.launch {
-            TrackingService.stopTime.collect {
+            mainRepository.getStopTime().collect {
                 stopTime = it
             }
         }
@@ -112,14 +112,16 @@ class TrackingViewModel @Inject constructor(
                 val timeInMillis = stopTime - startTime
                 val avgSpeedInKMH =
                     round((distanceInMeters / 1000f) / (timeInMillis / 1000f / 60 / 60) * 10) / 10f
-                val track = Track(
-                    bmp,
-                    startTime,
-                    distanceInMeters,
-                    avgSpeedInKMH,
-                    timeInMillis
+                insertTrack(
+                    Track(
+                        bmp,
+                        startTime,
+                        distanceInMeters,
+                        avgSpeedInKMH,
+                        timeInMillis
+                    )
                 )
-                insertTrack(track)
+
                 map!!.clear()
                 triggerEvent(Event.ShowToast("Track saved successfully"))
                 triggerEvent(Event.SendCommandToService(Constants.ACTION_RESET_SERVICE))
