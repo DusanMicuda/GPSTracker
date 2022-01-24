@@ -1,7 +1,10 @@
 package com.micudasoftware.gpstracker.ui
 
 import android.Manifest
+import android.content.Intent
+import android.net.Uri
 import android.os.Build
+import android.provider.Settings
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
@@ -22,7 +25,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
@@ -37,9 +39,6 @@ import com.micudasoftware.gpstracker.ui.ui.theme.LightBlue
 import com.micudasoftware.gpstracker.ui.viewmodels.StartViewModel
 import java.text.SimpleDateFormat
 import java.util.*
-import android.content.Intent
-import android.net.Uri
-import android.provider.Settings
 
 
 @ExperimentalPermissionsApi
@@ -52,36 +51,26 @@ fun StartScreen(
     val locationPermissionsState =
         rememberMultiplePermissionsState(
             permissions =
-                listOf(
-                    Manifest.permission.ACCESS_FINE_LOCATION,
-                    Manifest.permission.ACCESS_COARSE_LOCATION,
-                )
+            listOf(
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.ACCESS_COARSE_LOCATION,
+            )
         )
-    val backgroundLocationPermissionState = rememberPermissionState(
-        permission = Manifest.permission.ACCESS_BACKGROUND_LOCATION
-    )
-    val openDialog = remember {mutableStateOf(false)}
-    val context = LocalContext.current
-//
-//    val lifecycleOwner = LocalLifecycleOwner.current
-//    DisposableEffect(
-//        key1 = lifecycleOwner,
-//        effect = {
-//            val observer = LifecycleEventObserver { _, event ->
-//                if (event == Lifecycle.Event.ON_RESUME)
-//                    locationPermissionsState.launchMultiplePermissionRequest()
-//            }
-//            lifecycleOwner.lifecycle.addObserver(observer)
-//
-//            onDispose {
-//                lifecycleOwner.lifecycle.removeObserver(observer)
-//            }
-//        })
+    val backgroundLocationPermissionState =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
+            rememberPermissionState(
+                permission = Manifest.permission.ACCESS_BACKGROUND_LOCATION
+            )
+        else
+            null
 
-    if (openDialog.value) {
+    val openDialog = remember { mutableStateOf(false) }
+    val context = LocalContext.current
+
+    if (openDialog.value){
         AlertDialog(
             title = { Text(text = "Permissions Denied!") },
-            text = { Text(text = "You need to accept location permissions to use this app.")},
+            text = { Text(text = "You need to accept location permissions to use this app.") },
             onDismissRequest = {
                 openDialog.value = false
             },
@@ -123,7 +112,7 @@ fun StartScreen(
                         locationPermissionsState.allPermissionsGranted -> {
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                                 when {
-                                    backgroundLocationPermissionState.hasPermission -> {
+                                    backgroundLocationPermissionState!!.hasPermission -> {
                                         viewModel.onEvent(Event.OnFloatingButtonClick)
                                     }
                                     backgroundLocationPermissionState.shouldShowRationale -> {
