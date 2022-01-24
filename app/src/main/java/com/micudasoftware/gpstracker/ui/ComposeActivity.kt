@@ -8,11 +8,14 @@ import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.micudasoftware.gpstracker.ui.ui.theme.GPSTrackerTheme
 import dagger.hilt.android.AndroidEntryPoint
 
+@ExperimentalPermissionsApi
 @AndroidEntryPoint
 class ComposeActivity : ComponentActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {

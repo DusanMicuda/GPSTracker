@@ -123,4 +123,6 @@ dependencies {
     implementation 'androidx.lifecycle:lifecycle-viewmodel-compose:2.4.0'
     // UI Tests
     androidTestImplementation 'androidx.compose.ui:ui-test-junit4:1.0.5'
+    //Compose permissions
+    implementation "com.google.accompanist:accompanist-permissions:0.21.1-beta"
 }

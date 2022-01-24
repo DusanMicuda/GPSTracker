@@ -8,4 +8,5 @@
     <string name="distance">DISTANCE</string>
     <string name="avgSpeed">AVGSPEED</string>
     <string name="title_activity_compose">ComposeActivity</string>
+    <string name="title_activity_track_screen">TrackScreen</string>
 </resources>

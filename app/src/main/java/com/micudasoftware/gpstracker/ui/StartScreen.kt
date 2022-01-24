@@ -1,5 +1,7 @@
 package com.micudasoftware.gpstracker.ui
 
+import android.Manifest
+import android.os.Build
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
@@ -9,44 +11,106 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.clipToBounds
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.rememberMultiplePermissionsState
+import com.google.accompanist.permissions.rememberPermissionState
 import com.micudasoftware.gpstracker.R
 import com.micudasoftware.gpstracker.db.Track
 import com.micudasoftware.gpstracker.other.Event
 import com.micudasoftware.gpstracker.other.Utils
 import com.micudasoftware.gpstracker.ui.ui.theme.Blue
 import com.micudasoftware.gpstracker.ui.ui.theme.LightBlue
-import com.micudasoftware.gpstracker.ui.ui.theme.Purple700
-import com.micudasoftware.gpstracker.ui.ui.theme.Shapes
 import com.micudasoftware.gpstracker.ui.viewmodels.StartViewModel
 import java.text.SimpleDateFormat
 import java.util.*
+import android.content.Intent
+import android.net.Uri
+import android.provider.Settings
 
-@Preview
+
+@ExperimentalPermissionsApi
 @Composable
 fun StartScreen(
     modifier : Modifier = Modifier,
-    viewModel: StartViewModel = hiltViewModel(),
-
+    viewModel: StartViewModel = hiltViewModel()
 ) {
     val trackList = viewModel.runsSortedByDate.collectAsState(initial = emptyList())
+    val locationPermissionsState =
+        rememberMultiplePermissionsState(
+            permissions =
+                listOf(
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION,
+                )
+        )
+    val backgroundLocationPermissionState = rememberPermissionState(
+        permission = Manifest.permission.ACCESS_BACKGROUND_LOCATION
+    )
+    val openDialog = remember {mutableStateOf(false)}
+    val context = LocalContext.current
+//
+//    val lifecycleOwner = LocalLifecycleOwner.current
+//    DisposableEffect(
+//        key1 = lifecycleOwner,
+//        effect = {
+//            val observer = LifecycleEventObserver { _, event ->
+//                if (event == Lifecycle.Event.ON_RESUME)
+//                    locationPermissionsState.launchMultiplePermissionRequest()
+//            }
+//            lifecycleOwner.lifecycle.addObserver(observer)
+//
+//            onDispose {
+//                lifecycleOwner.lifecycle.removeObserver(observer)
+//            }
+//        })
+
+    if (openDialog.value) {
+        AlertDialog(
+            title = { Text(text = "Permissions Denied!") },
+            text = { Text(text = "You need to accept location permissions to use this app.")},
+            onDismissRequest = {
+                openDialog.value = false
+            },
+            dismissButton = {
+                OutlinedButton(
+                    border = BorderStroke(1.dp, Color.Blue),
+                    shape = RoundedCornerShape(20.dp),
+                    onClick = { openDialog.value = false }
+                ) {
+                    Text(text = "Cancel")
+                }
+            },
+            confirmButton = {
+                Button(
+                    shape = RoundedCornerShape(20.dp),
+                    onClick = {
+                        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                        val uri: Uri = Uri.fromParts("package", context.packageName, null)
+                        intent.data = uri
+                        context.startActivity(intent)
+                        openDialog.value = false
+                    }
+                ) {
+                    Text(text = "Ok")
+                }
+            }
+        )
+    }
+
     Scaffold(
         modifier = modifier
             .fillMaxSize(),
@@ -55,7 +119,29 @@ fun StartScreen(
             FloatingActionButton(
                 modifier = Modifier.padding(24.dp),
                 onClick = {
-                    viewModel.onEvent(Event.OnFloatingButtonClick)
+                    when {
+                        locationPermissionsState.allPermissionsGranted -> {
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                                when {
+                                    backgroundLocationPermissionState.hasPermission -> {
+                                        viewModel.onEvent(Event.OnFloatingButtonClick)
+                                    }
+                                    backgroundLocationPermissionState.shouldShowRationale -> {
+                                        openDialog.value = true
+                                    }
+                                    !backgroundLocationPermissionState.hasPermission ->
+                                        backgroundLocationPermissionState.launchPermissionRequest()
+                                }
+                            } else
+                                viewModel.onEvent(Event.OnFloatingButtonClick)
+                        }
+                        locationPermissionsState.shouldShowRationale -> {
+                            openDialog.value = true
+                        }
+                        !locationPermissionsState.allPermissionsGranted -> {
+                            locationPermissionsState.launchMultiplePermissionRequest()
+                        }
+                    }
                 }
             ) {
                 Icon(
