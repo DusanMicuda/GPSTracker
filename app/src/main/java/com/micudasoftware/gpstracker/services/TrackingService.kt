@@ -16,6 +16,7 @@ import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.android.gms.location.*
 import com.google.android.gms.location.LocationRequest.PRIORITY_HIGH_ACCURACY
 import com.google.android.gms.maps.model.LatLng
@@ -29,15 +30,14 @@ import com.micudasoftware.gpstracker.other.Constants.LOCATION_UPDATE_INTERVAL
 import com.micudasoftware.gpstracker.other.Constants.NOTIFICATION_CHANNEL_ID
 import com.micudasoftware.gpstracker.other.Constants.NOTIFICATION_CHANNEL_NAME
 import com.micudasoftware.gpstracker.other.Constants.NOTIFICATION_ID
-import com.micudasoftware.gpstracker.other.Utils
-import com.micudasoftware.gpstracker.ui.MainActivity
+import com.micudasoftware.gpstracker.ui.ComposeActivity
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import java.util.*
 
-
+@ExperimentalPermissionsApi
 class TrackingService : LifecycleService() {
 
     private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
@@ -92,7 +92,7 @@ class TrackingService : LifecycleService() {
     @SuppressLint("MissingPermission")
     private fun updateLocationTracking(isTracking: Boolean) {
         if (isTracking) {
-            if (Utils.hasLocationPermissions(this)) {
+//            if (Utils.hasLocationPermissions(this)) {
                 val request = LocationRequest.create().apply {
                     interval = LOCATION_UPDATE_INTERVAL
                     fastestInterval = FASTEST_LOCATION_UPDATE_INTERVAL
@@ -105,8 +105,8 @@ class TrackingService : LifecycleService() {
                     Looper.getMainLooper()
                 )
             }
-        } else
-            fusedLocationProviderClient.removeLocationUpdates(locationCallback)
+//        } else
+//            fusedLocationProviderClient.removeLocationUpdates(locationCallback)
     }
 
     private val locationCallback = object : LocationCallback() {
@@ -154,7 +154,7 @@ class TrackingService : LifecycleService() {
         return PendingIntent.getActivity(
             this,
             0,
-            Intent(this, MainActivity::class.java).also {
+            Intent(this, ComposeActivity::class.java).also {
                 it.action = ACTION_SHOW_TRACKING_FRAGMENT
             },
             flags

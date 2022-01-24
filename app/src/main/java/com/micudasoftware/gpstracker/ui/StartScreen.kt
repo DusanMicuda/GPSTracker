@@ -32,18 +32,21 @@ import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.google.accompanist.permissions.rememberPermissionState
 import com.micudasoftware.gpstracker.R
 import com.micudasoftware.gpstracker.db.Track
-import com.micudasoftware.gpstracker.other.Event
 import com.micudasoftware.gpstracker.other.Utils
+import com.micudasoftware.gpstracker.ui.destinations.TrackScreenDestination
 import com.micudasoftware.gpstracker.ui.ui.theme.Blue
 import com.micudasoftware.gpstracker.ui.ui.theme.LightBlue
 import com.micudasoftware.gpstracker.ui.viewmodels.StartViewModel
+import com.ramcosta.composedestinations.annotation.Destination
+import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import java.text.SimpleDateFormat
 import java.util.*
 
-
 @ExperimentalPermissionsApi
+@Destination(start = true)
 @Composable
 fun StartScreen(
+    navigator: DestinationsNavigator,
     modifier : Modifier = Modifier,
     viewModel: StartViewModel = hiltViewModel()
 ) {
@@ -113,7 +116,7 @@ fun StartScreen(
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                                 when {
                                     backgroundLocationPermissionState!!.hasPermission -> {
-                                        viewModel.onEvent(Event.OnFloatingButtonClick)
+                                        navigator.navigate(TrackScreenDestination)
                                     }
                                     backgroundLocationPermissionState.shouldShowRationale -> {
                                         openDialog.value = true
@@ -122,7 +125,7 @@ fun StartScreen(
                                         backgroundLocationPermissionState.launchPermissionRequest()
                                 }
                             } else
-                                viewModel.onEvent(Event.OnFloatingButtonClick)
+                                navigator.navigate(TrackScreenDestination)
                         }
                         locationPermissionsState.shouldShowRationale -> {
                             openDialog.value = true

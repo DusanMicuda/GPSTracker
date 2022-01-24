@@ -1,13 +1,12 @@
 package com.micudasoftware.gpstracker.repositories
 
-import com.google.android.gms.maps.model.LatLng
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.micudasoftware.gpstracker.db.Track
 import com.micudasoftware.gpstracker.db.TrackDAO
 import com.micudasoftware.gpstracker.services.TrackingService
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.flow.StateFlow
 import javax.inject.Inject
 
+@ExperimentalPermissionsApi
 class MainRepositoryImpl @Inject constructor(
     private val trackDao: TrackDAO
 ) : MainRepository{

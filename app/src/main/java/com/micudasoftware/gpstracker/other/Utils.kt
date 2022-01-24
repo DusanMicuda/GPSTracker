@@ -1,31 +1,10 @@
 package com.micudasoftware.gpstracker.other
 
-import android.Manifest
-import android.content.Context
 import android.location.Location
-import android.os.Build
 import com.google.android.gms.maps.model.LatLng
-import pub.devrel.easypermissions.EasyPermissions
 import java.util.concurrent.TimeUnit
 
 object Utils {
-
-    fun hasLocationPermissions(context: Context) : Boolean {
-        var result = EasyPermissions.hasPermissions(
-            context,
-            Manifest.permission.ACCESS_FINE_LOCATION,
-            Manifest.permission.ACCESS_COARSE_LOCATION
-        )
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && result) {
-            result = EasyPermissions.hasPermissions(
-                context,
-                Manifest.permission.ACCESS_BACKGROUND_LOCATION
-            )
-        }
-
-        return result
-    }
 
     fun getDistanceInMeters(pathPoints: List<LatLng>) : Float{
         var distanceInMeters = 0f

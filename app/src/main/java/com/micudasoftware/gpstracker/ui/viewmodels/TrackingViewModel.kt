@@ -2,16 +2,17 @@ package com.micudasoftware.gpstracker.ui.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.LatLngBounds
 import com.google.android.gms.maps.model.PolylineOptions
-import com.micudasoftware.gpstracker.R
 import com.micudasoftware.gpstracker.db.Track
 import com.micudasoftware.gpstracker.other.Constants
 import com.micudasoftware.gpstracker.other.Event
 import com.micudasoftware.gpstracker.other.Utils
 import com.micudasoftware.gpstracker.repositories.MainRepositoryImpl
+import com.micudasoftware.gpstracker.ui.destinations.StartScreenDestination
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,6 +23,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 import kotlin.math.round
 
+@ExperimentalPermissionsApi
 @HiltViewModel
 class TrackingViewModel @Inject constructor(
     private val mainRepository: MainRepositoryImpl
@@ -125,7 +127,7 @@ class TrackingViewModel @Inject constructor(
                 map!!.clear()
                 triggerEvent(Event.ShowToast("Track saved successfully"))
                 triggerEvent(Event.SendCommandToService(Constants.ACTION_RESET_SERVICE))
-                triggerEvent(Event.Navigate(R.id.action_trackingFragment_to_startFragment))
+                triggerEvent(Event.Navigate(StartScreenDestination))
             }
         }
     }

@@ -11,13 +11,20 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.micudasoftware.gpstracker.other.Event
 import com.micudasoftware.gpstracker.services.TrackingService
+import com.micudasoftware.gpstracker.ui.destinations.StartScreenDestination
 import com.micudasoftware.gpstracker.ui.viewmodels.TrackingViewModel
+import com.ramcosta.composedestinations.annotation.Destination
+import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import kotlinx.coroutines.flow.collect
 
+@ExperimentalPermissionsApi
+@Destination
 @Composable
 fun TrackScreen(
+    navigator: DestinationsNavigator,
     modifier: Modifier = Modifier,
     viewModel: TrackingViewModel = hiltViewModel()
 ) {
@@ -29,7 +36,7 @@ fun TrackScreen(
         viewModel.eventChannel.collect { event ->
             when (event) {
                 is Event.Navigate -> {
-//                findNavController().navigate(event.route)
+                    navigator.navigate(StartScreenDestination)
                 }
                 is Event.SendCommandToService -> {
                     Intent(context, TrackingService::class.java).also {

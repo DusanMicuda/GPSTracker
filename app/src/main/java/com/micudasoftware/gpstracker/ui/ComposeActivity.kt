@@ -6,9 +6,12 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.*
 import androidx.compose.ui.Modifier
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.micudasoftware.gpstracker.ui.ui.theme.GPSTrackerTheme
+import com.ramcosta.composedestinations.DestinationsNavHost
 import dagger.hilt.android.AndroidEntryPoint
 
+@ExperimentalPermissionsApi
 @AndroidEntryPoint
 class ComposeActivity : ComponentActivity() {
 
@@ -18,8 +21,7 @@ class ComposeActivity : ComponentActivity() {
             GPSTrackerTheme {
                 // A surface container using the 'background' color from the theme
                 Surface(color = MaterialTheme.colors.background) {
-//                    StartScreen()
-                    TrackScreen(Modifier.fillMaxSize())
+                    DestinationsNavHost(navGraph = NavGraphs.root)
                 }
             }
         }

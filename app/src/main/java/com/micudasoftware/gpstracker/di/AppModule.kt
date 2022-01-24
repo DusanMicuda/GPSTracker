@@ -1,17 +1,15 @@
 package com.micudasoftware.gpstracker.di
 
 import android.app.Application
-import android.content.Context
 import androidx.room.Room
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.micudasoftware.gpstracker.db.TrackDAO
 import com.micudasoftware.gpstracker.db.TrackDatabase
 import com.micudasoftware.gpstracker.other.Constants.TRACK_DATABASE_NAME
 import com.micudasoftware.gpstracker.repositories.MainRepositoryImpl
 import dagger.Module
 import dagger.Provides
-import dagger.hilt.DefineComponent
 import dagger.hilt.InstallIn
-import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
@@ -33,6 +31,7 @@ object AppModule {
     @Provides
     fun provideTrackDao(db: TrackDatabase) = db.getTrackDao()
 
+    @ExperimentalPermissionsApi
     @Singleton
     @Provides
     fun provideMainRepository(trackDao: TrackDAO) = MainRepositoryImpl(trackDao)
