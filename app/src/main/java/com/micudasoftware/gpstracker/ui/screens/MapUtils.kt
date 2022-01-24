@@ -1,4 +1,4 @@
-package com.micudasoftware.gpstracker.ui
+package com.micudasoftware.gpstracker.ui.screens
 
 import android.os.Bundle
 import androidx.compose.runtime.Composable

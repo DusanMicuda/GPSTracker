@@ -1,4 +1,4 @@
-package com.micudasoftware.gpstracker.ui.ui.theme
+package com.micudasoftware.gpstracker.ui.theme
 
 import androidx.compose.material.Typography
 import androidx.compose.ui.text.TextStyle

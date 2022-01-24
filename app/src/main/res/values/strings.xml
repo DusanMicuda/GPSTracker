@@ -1,12 +1,4 @@
 <resources>
     <string name="app_name">GPSTracker</string>
     <string name="google_maps_key">AIzaSyBp2MHScnjoZ3XZhm-0lDxCdjx-VzbI5Dk</string>
-    <string name="btnStart">Start</string>
-    <string name="btnStop">Stop</string>
-    <string name="date">DATE</string>
-    <string name="time">TIME</string>
-    <string name="distance">DISTANCE</string>
-    <string name="avgSpeed">AVGSPEED</string>
-    <string name="title_activity_compose">ComposeActivity</string>
-    <string name="title_activity_track_screen">TrackScreen</string>
 </resources>

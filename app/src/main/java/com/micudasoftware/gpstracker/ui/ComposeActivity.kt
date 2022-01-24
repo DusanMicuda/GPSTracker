@@ -3,11 +3,9 @@ package com.micudasoftware.gpstracker.ui
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.*
-import androidx.compose.ui.Modifier
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.micudasoftware.gpstracker.ui.ui.theme.GPSTrackerTheme
+import com.micudasoftware.gpstracker.ui.theme.GPSTrackerTheme
 import com.ramcosta.composedestinations.DestinationsNavHost
 import dagger.hilt.android.AndroidEntryPoint
 

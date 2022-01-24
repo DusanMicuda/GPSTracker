@@ -1,4 +1,4 @@
-package com.micudasoftware.gpstracker.ui
+package com.micudasoftware.gpstracker.ui.screens
 
 import android.Manifest
 import android.content.Intent
@@ -34,8 +34,8 @@ import com.micudasoftware.gpstracker.R
 import com.micudasoftware.gpstracker.db.Track
 import com.micudasoftware.gpstracker.other.Utils
 import com.micudasoftware.gpstracker.ui.destinations.TrackScreenDestination
-import com.micudasoftware.gpstracker.ui.ui.theme.Blue
-import com.micudasoftware.gpstracker.ui.ui.theme.LightBlue
+import com.micudasoftware.gpstracker.ui.theme.Blue
+import com.micudasoftware.gpstracker.ui.theme.LightBlue
 import com.micudasoftware.gpstracker.ui.viewmodels.StartViewModel
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
