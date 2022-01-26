@@ -7,14 +7,17 @@ import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.view.WindowCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.micudasoftware.gpstracker.other.Event
 import com.micudasoftware.gpstracker.services.TrackingService
-import com.micudasoftware.gpstracker.ui.destinations.StartScreenDestination
+import com.micudasoftware.gpstracker.ui.screens.destinations.StartScreenDestination
 import com.micudasoftware.gpstracker.ui.viewmodels.TrackingViewModel
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
@@ -31,6 +34,11 @@ fun TrackScreen(
     val scaffoldState = rememberScaffoldState()
     val rememberMapView = rememberMapViewWithLifecycle()
     val context = LocalContext.current
+    val systemUiController = rememberSystemUiController()
+    systemUiController.setSystemBarsColor(
+        color = Color.Transparent,
+        darkIcons = true
+    )
 
     LaunchedEffect(key1 = viewModel.eventChannel, block = {
         viewModel.eventChannel.collect { event ->
@@ -47,7 +55,6 @@ fun TrackScreen(
                 is Event.ShowToast -> {
                     scaffoldState.snackbarHostState.showSnackbar(event.message, null, SnackbarDuration.Short)
                 }
-                else -> Unit
             }
         }
     })

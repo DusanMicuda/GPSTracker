@@ -12,7 +12,7 @@ import com.micudasoftware.gpstracker.other.Constants
 import com.micudasoftware.gpstracker.other.Event
 import com.micudasoftware.gpstracker.other.Utils
 import com.micudasoftware.gpstracker.repositories.MainRepositoryImpl
-import com.micudasoftware.gpstracker.ui.destinations.StartScreenDestination
+import com.micudasoftware.gpstracker.ui.screens.destinations.StartScreenDestination
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow

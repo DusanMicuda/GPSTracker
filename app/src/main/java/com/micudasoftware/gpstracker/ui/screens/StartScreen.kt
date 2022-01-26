@@ -2,6 +2,7 @@ package com.micudasoftware.gpstracker.ui.screens
 
 import android.Manifest
 import android.content.Intent
+import android.content.res.Resources
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
@@ -14,6 +15,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.ripple.LocalRippleTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
@@ -26,15 +28,21 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.core.content.res.ResourcesCompat
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.google.accompanist.insets.ProvideWindowInsets
+import com.google.accompanist.insets.navigationBarsPadding
+import com.google.accompanist.insets.statusBarsPadding
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.google.accompanist.permissions.rememberPermissionState
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.micudasoftware.gpstracker.R
 import com.micudasoftware.gpstracker.db.Track
 import com.micudasoftware.gpstracker.other.Utils
-import com.micudasoftware.gpstracker.ui.destinations.TrackScreenDestination
+import com.micudasoftware.gpstracker.ui.screens.destinations.TrackScreenDestination
 import com.micudasoftware.gpstracker.ui.theme.Blue
+import com.micudasoftware.gpstracker.ui.theme.GPSTrackerTheme
 import com.micudasoftware.gpstracker.ui.theme.LightBlue
 import com.micudasoftware.gpstracker.ui.viewmodels.StartViewModel
 import com.ramcosta.composedestinations.annotation.Destination
@@ -51,6 +59,11 @@ fun StartScreen(
     viewModel: StartViewModel = hiltViewModel()
 ) {
     val trackList = viewModel.runsSortedByDate.collectAsState(initial = emptyList())
+    val systemUiController = rememberSystemUiController()
+    systemUiController.setSystemBarsColor(
+        color = MaterialTheme.colors.primaryVariant,
+        darkIcons = false
+    )
     val locationPermissionsState =
         rememberMultiplePermissionsState(
             permissions =
@@ -103,54 +116,59 @@ fun StartScreen(
         )
     }
 
-    Scaffold(
-        modifier = modifier
-            .fillMaxSize(),
-        backgroundColor = LightBlue,
-        floatingActionButton = {
-            FloatingActionButton(
-                modifier = Modifier.padding(24.dp),
-                onClick = {
-                    when {
-                        locationPermissionsState.allPermissionsGranted -> {
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                                when {
-                                    backgroundLocationPermissionState!!.hasPermission -> {
-                                        navigator.navigate(TrackScreenDestination)
+    ProvideWindowInsets {
+        Scaffold(
+            modifier = modifier
+                .fillMaxSize()
+                .statusBarsPadding()
+                .navigationBarsPadding(),
+            backgroundColor = LightBlue,
+            floatingActionButton = {
+                FloatingActionButton(
+                    modifier = Modifier.padding(24.dp),
+                    onClick = {
+                        when {
+                            locationPermissionsState.allPermissionsGranted -> {
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                                    when {
+                                        backgroundLocationPermissionState!!.hasPermission -> {
+                                            navigator.navigate(TrackScreenDestination)
+                                        }
+                                        backgroundLocationPermissionState.shouldShowRationale -> {
+                                            openDialog.value = true
+                                        }
+                                        !backgroundLocationPermissionState.hasPermission ->
+                                            backgroundLocationPermissionState.launchPermissionRequest()
                                     }
-                                    backgroundLocationPermissionState.shouldShowRationale -> {
-                                        openDialog.value = true
-                                    }
-                                    !backgroundLocationPermissionState.hasPermission ->
-                                        backgroundLocationPermissionState.launchPermissionRequest()
-                                }
-                            } else
-                                navigator.navigate(TrackScreenDestination)
-                        }
-                        locationPermissionsState.shouldShowRationale -> {
-                            openDialog.value = true
-                        }
-                        !locationPermissionsState.allPermissionsGranted -> {
-                            locationPermissionsState.launchMultiplePermissionRequest()
+                                } else
+                                    navigator.navigate(TrackScreenDestination)
+                            }
+                            locationPermissionsState.shouldShowRationale -> {
+                                openDialog.value = true
+                            }
+                            !locationPermissionsState.allPermissionsGranted -> {
+                                locationPermissionsState.launchMultiplePermissionRequest()
+                            }
                         }
                     }
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = "Add"
+                    )
                 }
+            }
+        ) {
+            Column(
+                verticalArrangement = Arrangement.Top,
+                modifier = Modifier.fillMaxSize()
             ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = "Add"
-                )
+                AppBar()
+                TrackList(trackList = trackList.value)
             }
         }
-    ) {
-        Column(
-            verticalArrangement = Arrangement.Top,
-            modifier = Modifier.fillMaxSize()
-        ) {
-            AppBar()
-            TrackList(trackList = trackList.value)
-        }
     }
+
 }
 
 @Composable
@@ -211,10 +229,11 @@ fun TrackItem(
             ) {
                 Image(
                     modifier = Modifier
-                        .fillMaxWidth(),
+                        .fillMaxWidth()
+                        .height(200.dp),
                     bitmap = track.image.let { it!!.asImageBitmap() },
                     contentDescription = "Track Image",
-                    contentScale = ContentScale.FillBounds
+                    contentScale = ContentScale.FillWidth
                 )
                 Row(
                     horizontalArrangement = Arrangement.SpaceAround,
