@@ -141,7 +141,7 @@ class TrackingViewModel @Inject constructor(
             CameraUpdateFactory.newLatLngBounds(
                 bounds.build(),
                 mapViewWidth,
-                mapViewHeight / 3,
+                mapViewHeight / 4,
                 (mapViewHeight * 0.05f).toInt()
             )
         )

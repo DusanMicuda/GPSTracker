@@ -2,12 +2,12 @@ package com.micudasoftware.gpstracker.ui.screens
 
 import android.Manifest
 import android.content.Intent
-import android.content.res.Resources
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -15,11 +15,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.ripple.LocalRippleTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
@@ -28,7 +28,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.core.content.res.ResourcesCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.accompanist.insets.ProvideWindowInsets
 import com.google.accompanist.insets.navigationBarsPadding
@@ -42,7 +41,6 @@ import com.micudasoftware.gpstracker.db.Track
 import com.micudasoftware.gpstracker.other.Utils
 import com.micudasoftware.gpstracker.ui.screens.destinations.TrackScreenDestination
 import com.micudasoftware.gpstracker.ui.theme.Blue
-import com.micudasoftware.gpstracker.ui.theme.GPSTrackerTheme
 import com.micudasoftware.gpstracker.ui.theme.LightBlue
 import com.micudasoftware.gpstracker.ui.viewmodels.StartViewModel
 import com.ramcosta.composedestinations.annotation.Destination
@@ -225,7 +223,7 @@ fun TrackItem(
             modifier = modifier
         ) {
             Box(
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier.height(200.dp)
             ) {
                 Image(
                     modifier = Modifier
@@ -234,6 +232,17 @@ fun TrackItem(
                     bitmap = track.image.let { it!!.asImageBitmap() },
                     contentDescription = "Track Image",
                     contentScale = ContentScale.FillWidth
+                )
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Brush.verticalGradient(
+                            listOf(
+                                Color.Transparent,
+                                Color.DarkGray
+                            ),
+                            400f
+                        ))
                 )
                 Row(
                     horizontalArrangement = Arrangement.SpaceAround,
@@ -246,10 +255,10 @@ fun TrackItem(
                         timeInMillis = track.dateInMillis
                     }
                     val dateFormat = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
-                    Text(text = dateFormat.format(calendar.time))
-                    Text(text = Utils.getFormattedTime(track.timeInMillis))
-                    Text(text = "${track.distanceInMeters}km")
-                    Text(text = "${track.avgSpeedInKMH}km/h")
+                    Text(text = dateFormat.format(calendar.time),color = Color.White)
+                    Text(text = Utils.getFormattedTime(track.timeInMillis),color = Color.White)
+                    Text(text = "${track.distanceInMeters}km",color = Color.White)
+                    Text(text = "${track.avgSpeedInKMH}km/h",color = Color.White)
                 }
             }
         }
