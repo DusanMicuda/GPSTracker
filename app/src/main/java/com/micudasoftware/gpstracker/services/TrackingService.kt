@@ -22,7 +22,7 @@ import com.google.android.gms.location.LocationRequest.PRIORITY_HIGH_ACCURACY
 import com.google.android.gms.maps.model.LatLng
 import com.micudasoftware.gpstracker.R
 import com.micudasoftware.gpstracker.other.Constants.ACTION_RESET_SERVICE
-import com.micudasoftware.gpstracker.other.Constants.ACTION_SHOW_TRACKING_FRAGMENT
+import com.micudasoftware.gpstracker.other.Constants.ACTION_SHOW_TRACK_SCREEN
 import com.micudasoftware.gpstracker.other.Constants.ACTION_START_SERVICE
 import com.micudasoftware.gpstracker.other.Constants.ACTION_STOP_SERVICE
 import com.micudasoftware.gpstracker.other.Constants.FASTEST_LOCATION_UPDATE_INTERVAL
@@ -156,7 +156,7 @@ class TrackingService : LifecycleService() {
             this,
             0,
             Intent(this, ComposeActivity::class.java).also {
-                it.action = ACTION_SHOW_TRACKING_FRAGMENT
+                it.action = ACTION_SHOW_TRACK_SCREEN
             },
             flags
         )
