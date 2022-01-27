@@ -11,8 +11,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.core.view.WindowCompat
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.google.accompanist.insets.ProvideWindowInsets
+import com.google.accompanist.insets.navigationBarsPadding
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.micudasoftware.gpstracker.other.Event
@@ -31,7 +32,7 @@ fun TrackScreen(
     modifier: Modifier = Modifier,
     viewModel: TrackingViewModel = hiltViewModel()
 ) {
-    val scaffoldState = rememberScaffoldState()
+    val snackBarState = remember {SnackbarHostState()}
     val rememberMapView = rememberMapViewWithLifecycle()
     val context = LocalContext.current
     val systemUiController = rememberSystemUiController()
@@ -53,37 +54,50 @@ fun TrackScreen(
                     }
                 }
                 is Event.ShowToast -> {
-                    scaffoldState.snackbarHostState.showSnackbar(event.message, null, SnackbarDuration.Short)
+                    snackBarState.showSnackbar(event.message, null, SnackbarDuration.Short)
                 }
             }
         }
     })
 
-    Scaffold(scaffoldState = scaffoldState) {
+    ProvideWindowInsets {
         Box(modifier = modifier) {
-            AndroidView( {rememberMapView} ) { mapView ->
+            AndroidView(
+                modifier = Modifier.fillMaxSize(),
+                factory = { rememberMapView }
+            ) { mapView ->
                 mapView.getMapAsync {
                     viewModel.map = it
                     viewModel.addAllPolylines()
                 }
             }
-        }
-        Row(
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.Bottom,
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(bottom = 48.dp)
-        ) {
-            val btnText = viewModel.btnText.collectAsState()
-            Button(
-                shape = RoundedCornerShape(20.dp),
-                onClick = {
-                    viewModel.setMapViewSize(rememberMapView.width, rememberMapView.height)
-                    viewModel.toggleTrack()
-                }
+            Row(
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.Bottom,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .navigationBarsPadding()
             ) {
-                Text(text = btnText.value)
+                val btnText = viewModel.btnText.collectAsState()
+                Button(
+                    modifier = Modifier.padding(bottom = 48.dp),
+                    shape = RoundedCornerShape(20.dp),
+                    onClick = {
+                        viewModel.setMapViewSize(rememberMapView.width, rememberMapView.height)
+                        viewModel.toggleTrack()
+                    }
+                ) {
+                    Text(text = btnText.value)
+                }
+            }
+            Row(
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.Bottom,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .navigationBarsPadding()
+            ) {
+                SnackbarHost(hostState = snackBarState)
             }
         }
     }

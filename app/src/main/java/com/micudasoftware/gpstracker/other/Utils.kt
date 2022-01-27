@@ -1,10 +1,25 @@
 package com.micudasoftware.gpstracker.other
 
+import android.Manifest
+import android.content.Context
+import android.content.pm.PackageManager
 import android.location.Location
+import android.os.Build
 import com.google.android.gms.maps.model.LatLng
 import java.util.concurrent.TimeUnit
 
 object Utils {
+
+    fun hasLocationPermissions(context: Context): Boolean {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            context.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED &&
+                    context.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED &&
+                    context.checkSelfPermission(Manifest.permission.ACCESS_BACKGROUND_LOCATION) == PackageManager.PERMISSION_GRANTED
+        } else {
+            context.checkPermission(Manifest.permission.ACCESS_FINE_LOCATION,0,0) == PackageManager.PERMISSION_GRANTED &&
+                    context.checkPermission(Manifest.permission.ACCESS_COARSE_LOCATION,0,0) == PackageManager.PERMISSION_GRANTED
+        }
+    }
 
     fun getDistanceInMeters(pathPoints: List<LatLng>) : Float{
         var distanceInMeters = 0f

@@ -30,6 +30,7 @@ import com.micudasoftware.gpstracker.other.Constants.LOCATION_UPDATE_INTERVAL
 import com.micudasoftware.gpstracker.other.Constants.NOTIFICATION_CHANNEL_ID
 import com.micudasoftware.gpstracker.other.Constants.NOTIFICATION_CHANNEL_NAME
 import com.micudasoftware.gpstracker.other.Constants.NOTIFICATION_ID
+import com.micudasoftware.gpstracker.other.Utils
 import com.micudasoftware.gpstracker.ui.ComposeActivity
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -92,7 +93,7 @@ class TrackingService : LifecycleService() {
     @SuppressLint("MissingPermission")
     private fun updateLocationTracking(isTracking: Boolean) {
         if (isTracking) {
-//            if (Utils.hasLocationPermissions(this)) {
+            if (Utils.hasLocationPermissions(this)) {
                 val request = LocationRequest.create().apply {
                     interval = LOCATION_UPDATE_INTERVAL
                     fastestInterval = FASTEST_LOCATION_UPDATE_INTERVAL
@@ -105,8 +106,8 @@ class TrackingService : LifecycleService() {
                     Looper.getMainLooper()
                 )
             }
-//        } else
-//            fusedLocationProviderClient.removeLocationUpdates(locationCallback)
+        } else
+            fusedLocationProviderClient.removeLocationUpdates(locationCallback)
     }
 
     private val locationCallback = object : LocationCallback() {
